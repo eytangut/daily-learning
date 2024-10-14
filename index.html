@@ -1,8 +1,116 @@
-<style>
-.yellow
-{
-    background-color:yellow;
-}
-</style>
-<h3>agmon</h3>
-<h4 class=yellow>no</h4>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Checkbox</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .checkbox-container {
+            display: inline-block;
+            cursor: pointer;
+            font-size: 24px;
+            position: relative;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkmark {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #007BFF;
+            background-color: white;
+            border-radius: 5px;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        input[type="checkbox"]:checked + .checkmark {
+            background-color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="learning-title">Daily Learning Task</h1>
+        <label class="checkbox-container">
+            <input type="checkbox" id="daily-checkbox">
+            <span class="checkmark"></span>
+        </label>
+    </div>
+    <script>
+        // Get elements
+        const checkbox = document.getElementById('daily-checkbox');
+
+        // Function to check the current date
+        function checkDateReset() {
+            const now = new Date();
+            const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            // Get last reset date from local storage
+            const lastResetDate = localStorage.getItem('lastResetDate');
+
+            if (lastResetDate !== currentDate) {
+                // Reset checkbox if a new day has started
+                checkbox.checked = false;
+                localStorage.setItem('isChecked', 'false'); // Reset stored state
+                localStorage.setItem('lastResetDate', currentDate); // Update reset date
+            } else {
+                // Load checkbox state if the day hasn't changed
+                const savedState = localStorage.getItem('isChecked') === 'true';
+                checkbox.checked = savedState;
+            }
+        }
+
+        // Function to show notifications
+        function showNotification() {
+            if (Notification.permission === 'granted') {
+                new Notification('Reminder', {
+                    body: 'Please check the checkbox!',
+                });
+            }
+        }
+
+        // Check if notifications are supported and request permission
+        if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    // Set intervals for notifications
+                    setInterval(() => {
+                        const now = new Date();
+                        const hours = now.getHours();
+
+                        // Set notification times (e.g., 9 AM, 12 PM, 3 PM)
+                        if (!checkbox.checked && (hours === 9 || hours === 12 || hours === 15)) {
+                            showNotification();
+                        }
+                    }, 60 * 1000); // Check every minute
+                }
+            });
+        }
+
+        // Check date reset and load checkbox state on page load
+        window.onload = checkDateReset;
+
+        // Save checkbox state on change
+        checkbox.addEventListener('change', () => {
+            localStorage.setItem('isChecked', checkbox.checked);
+        });
+    </script>
+</body>
+</html>
